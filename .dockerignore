@@ -1,0 +1,41 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+
+# Data
+data/
+*.csv
+*.json
+!mongo-init.js
+
+# Logs
+logs/
+*.log
+
+# Docker
+.dockerignore
+Dockerfile
+docker-compose.yml
+
+# Git
+.git/
+.gitignore
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Documentation (included in image)
+# *.md
+
+# OS
+.DS_Store
+Thumbs.db

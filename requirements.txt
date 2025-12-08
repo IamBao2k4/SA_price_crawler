@@ -1,0 +1,6 @@
+requests>=2.31.0
+pandas>=2.2.0
+python-binance>=1.0.19
+schedule>=1.2.0
+kafka-python>=2.0.2
+pymongo>=4.6.0

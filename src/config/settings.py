@@ -46,7 +46,7 @@ class CrawlerConfig:
 class KafkaConfig:
     """Kafka configuration"""
     bootstrap_servers: str = field(
-        default_factory=lambda: os.getenv('KAFKA_BOOTSTRAP_SERVERS', 'localhost:9093')
+        default_factory=lambda: os.getenv('KAFKA_BOOTSTRAP_SERVERS')
     )
     topic_prefix: str = field(
         default_factory=lambda: os.getenv('KAFKA_TOPIC_PREFIX', 'binance.klines')
@@ -69,7 +69,7 @@ class KafkaConfig:
 class MongoDBConfig:
     """MongoDB configuration"""
     uri: str = field(
-        default_factory=lambda: os.getenv('MONGODB_URI', 'mongodb://admin:admin123@localhost:27017/')
+        default_factory=lambda: os.getenv('MONGODB_URI')
     )
     database: str = field(
         default_factory=lambda: os.getenv('MONGODB_DATABASE', 'binance')

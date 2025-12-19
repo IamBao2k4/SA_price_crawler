@@ -29,13 +29,15 @@ wheels/
 *.swp
 *.swo
 *~
+.claude/
 
 # Testing
 test_*.py
 debug_*.py
+!test_connection.py
 *.log
 
-# Docker
+# Docker & Environment
 .env
 
 # Data

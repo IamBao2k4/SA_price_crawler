@@ -18,32 +18,37 @@ Binance API → Producer → Kafka → Consumer → MongoDB
 
 ## 🚀 Quick Start
 
-### Option 1: Docker (Recommended)
+### Option 1: Remote Server (Production)
 
 ```bash
-# Start all services
-docker-compose up -d
+# 1. Setup environment
+cp .env.example .env
+# Edit .env with your server credentials
 
-# View logs
-docker-compose logs -f crawler consumer
+# 2. Test connection
+python test_connection.py
 
-# Monitor via Kafka UI
-open http://localhost:8080
+# 3. Run with Docker
+docker-compose -f docker-compose.remote.yml up -d
+
+# Or run locally
+python main_producer.py
 ```
+
+See [SETUP.md](SETUP.md) for detailed setup instructions.
 
 ### Option 2: Local Development
 
 ```bash
-# Install dependencies
-pip install -r requirements.txt
+# 1. Setup environment
+cp .env.example .env
+# Edit .env for local (localhost)
 
-# Start Kafka & MongoDB (Docker)
+# 2. Start Kafka & MongoDB
 docker-compose up -d kafka mongodb
 
-# Run producer
+# 3. Run services
 python main_producer.py
-
-# Run consumer (in another terminal)
 python main_consumer.py
 ```
 
@@ -125,10 +130,8 @@ Or use `.env` file (see `.env.example`).
 
 ## 📚 Documentation
 
-- **[ARCHITECTURE.md](ARCHITECTURE.md)** - Clean Architecture details
-- **[DOCKER_QUICKSTART.md](DOCKER_QUICKSTART.md)** - Docker quick start
-- **[DOCKER_GUIDE.md](DOCKER_GUIDE.md)** - Docker detailed guide
-- **[REFACTORING.md](REFACTORING.md)** - Migration from old code
+- **[SETUP.md](SETUP.md)** - Setup & Configuration Guide
+- **[test_connection.py](test_connection.py)** - Connection Testing Tool
 
 ## 🧪 Testing
 

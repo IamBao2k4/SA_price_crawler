@@ -6,10 +6,14 @@ from src.storage.kafka_broker import KafkaMessageBroker
 from src.storage.mongodb_storage import MongoDBStorage
 from src.consumers.storage_service import StorageService
 from src.utils.logger import setup_logger
+from src.utils.validation import check_env_or_exit
 
 
 def main():
     """Main function"""
+    # Validate environment variables
+    check_env_or_exit()
+
     # Setup
     settings = Settings()
     logger = setup_logger(__name__, settings.log_level)

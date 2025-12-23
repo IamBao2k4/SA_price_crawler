@@ -4,3 +4,5 @@ python-binance>=1.0.19
 schedule>=1.2.0
 kafka-python>=2.0.2
 pymongo>=4.6.0
+python-dotenv>=1.0.0
+Bin

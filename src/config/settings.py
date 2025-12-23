@@ -4,6 +4,10 @@ Application settings and configuration
 import os
 from dataclasses import dataclass, field
 from typing import Dict, List
+from dotenv import load_dotenv
+
+# Load .env file
+load_dotenv()
 
 
 @dataclass

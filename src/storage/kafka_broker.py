@@ -68,18 +68,27 @@ class KafkaMessageBroker(IMessageBroker):
                 key=key,
                 value=message.to_dict()
             )
-            # future.get(timeout=10)  # Uncomment for synchronous
+            # Wait for acknowledgment to ensure message is sent
+            record_metadata = future.get(timeout=10)
+            logger.debug(
+                f"Message sent to {record_metadata.topic} "
+                f"partition {record_metadata.partition} "
+                f"offset {record_metadata.offset}"
+            )
             return True
         except KafkaError as e:
             logger.error(f"Kafka publish error: {e}")
+            return False
+        except Exception as e:
+            logger.error(f"Unexpected error publishing to Kafka: {e}")
             return False
 
     def consume(self, topics: List[str], callback: Callable) -> None:
         """Consume messages from Kafka"""
         logger.info(f"Subscribing to topics: {', '.join(topics)}")
 
+        # Create consumer without auto-subscribing
         self.consumer = KafkaConsumer(
-            *topics,
             bootstrap_servers=self.config.bootstrap_servers.split(','),
             group_id=self.config.group_id,
             value_deserializer=lambda m: json.loads(m.decode('utf-8')),
@@ -90,12 +99,57 @@ class KafkaMessageBroker(IMessageBroker):
             max_poll_records=self.config.max_poll_records
         )
 
+        # Subscribe to topics
+        self.consumer.subscribe(topics)
         logger.info("✅ Subscribed to Kafka topics")
 
-        # Consume messages
+        # Wait for partition assignment using poll
+        logger.info("Waiting for partition assignment...")
+        max_retries = 10
+        retry_count = 0
+
+        while retry_count < max_retries:
+            # Poll with timeout to trigger rebalance
+            records = self.consumer.poll(timeout_ms=1000)
+
+            partitions = self.consumer.assignment()
+            if partitions:
+                logger.info(f"✅ Assigned partitions: {partitions}")
+
+                # Log consumer position
+                for partition in partitions:
+                    position = self.consumer.position(partition)
+                    logger.info(f"Partition {partition.topic}:{partition.partition} position: {position}")
+
+                # Process any records from this poll
+                for topic_partition, messages in records.items():
+                    for message in messages:
+                        callback(message.value)
+
+                break
+
+            retry_count += 1
+            logger.info(f"Waiting for partitions... (attempt {retry_count}/{max_retries})")
+
+        if not self.consumer.assignment():
+            logger.error("❌ No partitions assigned after waiting. Check Kafka configuration.")
+            return
+
+        # Continue consuming messages
         try:
-            for message in self.consumer:
-                callback(message.value)
+            logger.info("Starting message consumption loop...")
+            message_count = 0
+
+            while True:
+                records = self.consumer.poll(timeout_ms=1000)
+
+                for topic_partition, messages in records.items():
+                    for message in messages:
+                        message_count += 1
+                        if message_count % 100 == 0:
+                            logger.info(f"Consumed {message_count} messages so far...")
+                        callback(message.value)
+
         except KeyboardInterrupt:
             logger.info("Consumer interrupted")
         finally:

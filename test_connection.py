@@ -2,7 +2,8 @@
 Test connection to remote services
 """
 import sys
-from kafka import KafkaProducer, KafkaConsumer
+from kafka import KafkaProducer
+from kafka.admin import KafkaAdminClient
 from pymongo import MongoClient
 from src.config.settings import Settings
 
@@ -22,12 +23,20 @@ def test_kafka():
         )
         print("✅ Kafka Producer: Connected")
 
-        # List topics
-        topics = producer.list_topics(timeout=5)
-        print(f"✅ Available topics: {len(topics.topics)} topics")
-        binance_topics = [t for t in topics.topics if 'binance' in t]
-        if binance_topics:
-            print(f"   Binance topics: {binance_topics}")
+        # List topics using AdminClient
+        try:
+            admin = KafkaAdminClient(
+                bootstrap_servers=settings.kafka.bootstrap_servers.split(','),
+                request_timeout_ms=10000
+            )
+            topics = admin.list_topics()
+            print(f"✅ Available topics: {len(topics)} topics")
+            binance_topics = [t for t in topics if 'binance' in t]
+            if binance_topics:
+                print(f"   Binance topics: {binance_topics}")
+            admin.close()
+        except Exception as e:
+            print(f"⚠️  Could not list topics: {e}")
 
         producer.close()
         return True
@@ -48,17 +57,13 @@ def test_mongodb():
     try:
         client = MongoClient(settings.mongodb.uri, serverSelectionTimeoutMS=5000)
 
-        # Test connection
+        # Test connection with ping (doesn't require auth)
         client.admin.command('ping')
         print("✅ MongoDB: Connected")
 
-        # List databases
-        dbs = client.list_database_names()
-        print(f"✅ Available databases: {dbs}")
-
-        # Check binance database
-        if settings.mongodb.database in dbs:
-            db = client[settings.mongodb.database]
+        # Try to access the specific database (may work without listDatabases permission)
+        db = client[settings.mongodb.database]
+        try:
             collections = db.list_collection_names()
             print(f"✅ Collections in '{settings.mongodb.database}': {collections}")
 
@@ -66,6 +71,8 @@ def test_mongodb():
             if 'klines' in collections:
                 count = db.klines.count_documents({})
                 print(f"✅ Documents in klines: {count:,}")
+        except Exception as e:
+            print(f"⚠️  Could not list collections (may need auth): {e}")
 
         client.close()
         return True

@@ -38,7 +38,8 @@ class BinanceDataSource(IDataSource):
         self,
         symbol: str,
         interval: str,
-        limit: int
+        limit: int,
+        end_time: Optional[int] = None
     ) -> Optional[List[KlineMessage]]:
         """Fetch klines from Binance API"""
         params = {
@@ -46,6 +47,10 @@ class BinanceDataSource(IDataSource):
             'interval': interval,
             'limit': min(limit, 1000)  # Binance max
         }
+        
+        # Add end_time if provided
+        if end_time is not None:
+            params['endTime'] = end_time
 
         try:
             response = self.session.get(

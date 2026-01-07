@@ -34,13 +34,17 @@ class KafkaMessageBroker(IMessageBroker):
 
         try:
             logger.info("Creating KafkaProducer instance...")
+            compression = self.config.compression_type
+            if compression is not None and str(compression).lower() == 'none':
+                compression = None
+
             self.producer = KafkaProducer(
                 bootstrap_servers=self.config.bootstrap_servers.split(','),
                 value_serializer=lambda v: json.dumps(v).encode('utf-8'),
                 key_serializer=lambda k: k.encode('utf-8') if k else None,
                 acks=self.config.acks,
                 retries=self.config.retries,
-                compression_type=self.config.compression_type,
+                compression_type=compression,
                 batch_size=self.config.batch_size,
                 linger_ms=self.config.linger_ms,
                 request_timeout_ms=self.config.request_timeout_ms
@@ -55,25 +59,17 @@ class KafkaMessageBroker(IMessageBroker):
         logger.info(f"Connecting to Kafka (consumer): {self.config.bootstrap_servers}")
 
         # Topics will be subscribed when consume() is called
-        logger.info("✅ Kafka consumer ready")
+        logger.info("Kafka consumer ready")
 
     def publish(self, topic: str, key: str, message: KlineMessage) -> bool:
-        """Publish message to Kafka"""
+        """Publish message to Kafka (fire-and-forget, only log error)"""
         if not self.producer:
             raise RuntimeError("Producer not initialized")
-
         try:
-            future = self.producer.send(
+            self.producer.send(
                 topic,
                 key=key,
                 value=message.to_dict()
-            )
-            # Wait for acknowledgment to ensure message is sent
-            record_metadata = future.get(timeout=10)
-            logger.debug(
-                f"Message sent to {record_metadata.topic} "
-                f"partition {record_metadata.partition} "
-                f"offset {record_metadata.offset}"
             )
             return True
         except KafkaError as e:
@@ -101,55 +97,39 @@ class KafkaMessageBroker(IMessageBroker):
 
         # Subscribe to topics
         self.consumer.subscribe(topics)
-        logger.info("✅ Subscribed to Kafka topics")
-
+        logger.info(f"Subscribed to Kafka topics")
         # Wait for partition assignment using poll
         logger.info("Waiting for partition assignment...")
         max_retries = 10
         retry_count = 0
 
         while retry_count < max_retries:
-            # Poll with timeout to trigger rebalance
             records = self.consumer.poll(timeout_ms=1000)
-
             partitions = self.consumer.assignment()
             if partitions:
-                logger.info(f"✅ Assigned partitions: {partitions}")
-
-                # Log consumer position
+                logger.info(f"Assigned partitions: {partitions}")
                 for partition in partitions:
                     position = self.consumer.position(partition)
                     logger.info(f"Partition {partition.topic}:{partition.partition} position: {position}")
-
-                # Process any records from this poll
                 for topic_partition, messages in records.items():
                     for message in messages:
                         callback(message.value)
-
                 break
-
             retry_count += 1
             logger.info(f"Waiting for partitions... (attempt {retry_count}/{max_retries})")
 
         if not self.consumer.assignment():
-            logger.error("❌ No partitions assigned after waiting. Check Kafka configuration.")
+            logger.error("No partitions assigned after waiting. Check Kafka configuration.")
             return
 
         # Continue consuming messages
         try:
             logger.info("Starting message consumption loop...")
-            message_count = 0
-
             while True:
                 records = self.consumer.poll(timeout_ms=1000)
-
                 for topic_partition, messages in records.items():
                     for message in messages:
-                        message_count += 1
-                        if message_count % 100 == 0:
-                            logger.info(f"Consumed {message_count} messages so far...")
                         callback(message.value)
-
         except KeyboardInterrupt:
             logger.info("Consumer interrupted")
         finally:
@@ -166,9 +146,9 @@ class KafkaMessageBroker(IMessageBroker):
             logger.info("Closing Kafka producer...")
             self.producer.flush()
             self.producer.close()
-            logger.info("✅ Producer closed")
+            logger.info("Producer closed")
 
         if self.consumer:
             logger.info("Closing Kafka consumer...")
             self.consumer.close()
-            logger.info("✅ Consumer closed")
+            logger.info("Consumer closed")

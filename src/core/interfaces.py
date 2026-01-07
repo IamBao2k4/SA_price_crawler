@@ -46,3 +46,22 @@ class IStorage(ABC):
     def close(self) -> None:
         """Close connection"""
         pass
+
+
+class INatsPublisher(ABC):
+    """Interface for NATS message publisher"""
+
+    @abstractmethod
+    async def connect(self) -> None:
+        """Establish connection to NATS server"""
+        pass
+
+    @abstractmethod
+    async def publish(self, subject: str, data: bytes) -> bool:
+        """Publish message to NATS subject"""
+        pass
+
+    @abstractmethod
+    async def close(self) -> None:
+        """Close NATS connection"""
+        pass

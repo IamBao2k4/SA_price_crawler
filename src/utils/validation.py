@@ -34,11 +34,11 @@ def check_env_or_exit():
     is_valid, missing = validate_env_vars()
 
     if not is_valid:
-        print("❌ Missing required environment variables:")
+        print("Missing required environment variables:")
         for var in missing:
             print(f"   - {var}")
-        print("\n📝 Please create a .env file with required variables.")
+        print("\nPlease create a .env file with required variables.")
         print("   See .env.example for reference.\n")
         sys.exit(1)
 
-    print("✅ Environment variables validated")
+    print("Environment variables validated")

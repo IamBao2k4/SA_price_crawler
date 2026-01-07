@@ -43,6 +43,19 @@ services:
       - binance-network
     command: mongod --quiet --logpath /dev/null
 
+  # # NATS - Message Bus for real-time streaming
+  # nats:
+  #   image: nats:2.10-alpine
+  #   container_name: binance_nats
+  #   ports:
+  #     - "4222:4222"  # Client connections
+  #     - "8222:8222"  # HTTP monitoring
+  #     - "6222:6222"  # Cluster routing
+  #   command: ["-js", "-m", "8222"]  # Enable JetStream and monitoring
+  #   networks:
+  #     - binance-network
+  #   restart: unless-stopped
+
   # Kafka UI - Lightweight
   # kafka-ui:
   #   image: provectuslabs/kafka-ui:v0.7.2
@@ -82,7 +95,7 @@ services:
     restart: unless-stopped
     command: sh -c "sleep 45 && python main_producer.py"
 
-  # Kafka Consumer -> MongoDB Writer
+  # Kafka Consumer -> MongoDB Writer + NATS Publisher
   consumer:
     build:
       context: .
@@ -91,12 +104,14 @@ services:
     depends_on:
       - kafka
       - mongodb
+      - nats
     environment:
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       KAFKA_TOPIC_PREFIX: binance.klines
       KAFKA_GROUP_ID: binance-consumer-group
       MONGODB_URI: mongodb://admin:admin123@mongodb:27017/
       MONGODB_DATABASE: binance
+      NATS_URL: nats://nats:4222
       TZ: Asia/Ho_Chi_Minh
       PYTHONUNBUFFERED: 1
     volumes:

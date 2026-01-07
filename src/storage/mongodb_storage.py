@@ -26,7 +26,7 @@ class MongoDBStorage(IStorage):
         self.collection = self.db[config.collection]
 
         self._ensure_indexes()
-        logger.info("✅ MongoDB connected")
+        logger.info("MongoDB connected")
 
     def _ensure_indexes(self):
         """Create indexes if not exist"""
@@ -49,7 +49,7 @@ class MongoDBStorage(IStorage):
                 name='opentime_desc'
             )
 
-            logger.info("✅ MongoDB indexes ensured")
+            logger.info("MongoDB indexes ensured")
         except Exception as e:
             logger.warning(f"Index creation warning: {e}")
 
@@ -96,4 +96,4 @@ class MongoDBStorage(IStorage):
         """Close connection"""
         logger.info("Closing MongoDB connection...")
         self.client.close()
-        logger.info("✅ MongoDB closed")
+        logger.info("MongoDB closed")

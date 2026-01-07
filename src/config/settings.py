@@ -30,20 +30,21 @@ class IntervalConfig:
 class CrawlerConfig:
     """Crawler configuration"""
     intervals: Dict[str, IntervalConfig] = field(default_factory=lambda: {
-        '1m': IntervalConfig(limit=120, update_every_seconds=3600),
-        '3m': IntervalConfig(limit=60, update_every_seconds=7200),
-        '5m': IntervalConfig(limit=60, update_every_seconds=10800),
-        '15m': IntervalConfig(limit=32, update_every_seconds=21600),
-        '30m': IntervalConfig(limit=24, update_every_seconds=21600),
-        '1h': IntervalConfig(limit=48, update_every_seconds=21600),
-        '2h': IntervalConfig(limit=24, update_every_seconds=21600),
-        '4h': IntervalConfig(limit=18, update_every_seconds=43200),
-        '6h': IntervalConfig(limit=28, update_every_seconds=43200),
-        '12h': IntervalConfig(limit=14, update_every_seconds=86400),
-        '1d': IntervalConfig(limit=7, update_every_seconds=86400),
-        '1w': IntervalConfig(limit=4, update_every_seconds=604800),
+        '1m': IntervalConfig(limit=120, update_every_seconds=60),      # 1 minute
+        '3m': IntervalConfig(limit=60, update_every_seconds=180),      # 3 minutes
+        '5m': IntervalConfig(limit=60, update_every_seconds=300),      # 5 minutes
+        '15m': IntervalConfig(limit=32, update_every_seconds=900),     # 15 minutes
+        '30m': IntervalConfig(limit=24, update_every_seconds=1800),    # 30 minutes
+        '1h': IntervalConfig(limit=48, update_every_seconds=3600),     # 1 hour
+        '2h': IntervalConfig(limit=24, update_every_seconds=7200),     # 2 hours
+        '4h': IntervalConfig(limit=18, update_every_seconds=14400),    # 4 hours
+        '6h': IntervalConfig(limit=28, update_every_seconds=21600),    # 6 hours
+        '12h': IntervalConfig(limit=14, update_every_seconds=43200),   # 12 hours
+        '1d': IntervalConfig(limit=7, update_every_seconds=86400),     # 1 day
+        '1w': IntervalConfig(limit=4, update_every_seconds=604800),    # 1 week
     })
     symbols_file: str = "symbols_top20.txt"
+    max_workers: int = 4
 
 
 @dataclass
@@ -58,11 +59,21 @@ class KafkaConfig:
     group_id: str = field(
         default_factory=lambda: os.getenv('KAFKA_GROUP_ID', 'binance-consumer-group')
     )
-    compression_type: str = 'gzip'
-    acks: int = 1
-    retries: int = 3
-    batch_size: int = 16384
-    linger_ms: int = 10
+    compression_type: str = field(
+        default_factory=lambda: os.getenv('KAFKA_COMPRESSION', 'none')  
+    )
+    acks: int = field(
+        default_factory=lambda: int(os.getenv('KAFKA_ACKS', '1')) 
+    )
+    retries: int = field(
+        default_factory=lambda: int(os.getenv('KAFKA_RETRIES', '3'))
+    )
+    batch_size: int = field(
+        default_factory=lambda: int(os.getenv('KAFKA_BATCH_SIZE', '16384'))
+    )
+    linger_ms: int = field(
+        default_factory=lambda: int(os.getenv('KAFKA_LINGER_MS', '2')) 
+    )
     max_poll_records: int = 500
     api_version_auto_timeout_ms: int = 10000
     request_timeout_ms: int = 30000
@@ -80,7 +91,17 @@ class MongoDBConfig:
     )
     collection: str = 'klines'
     batch_size: int = 100
-    batch_timeout: int = 5
+    batch_timeout: int = 2
+
+
+@dataclass
+class NatsConfig:
+    """NATS configuration"""
+    url: str = field(
+        default_factory=lambda: os.getenv('NATS_URL', 'nats://localhost:4222')
+    )
+    max_reconnect_attempts: int = 60
+    reconnect_time_wait: int = 2
 
 
 @dataclass
@@ -90,6 +111,7 @@ class Settings:
     crawler: CrawlerConfig = field(default_factory=CrawlerConfig)
     kafka: KafkaConfig = field(default_factory=KafkaConfig)
     mongodb: MongoDBConfig = field(default_factory=MongoDBConfig)
+    nats: NatsConfig = field(default_factory=NatsConfig)
 
     # Environment
     timezone: str = field(

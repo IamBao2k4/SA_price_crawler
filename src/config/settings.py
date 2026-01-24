@@ -30,18 +30,18 @@ class IntervalConfig:
 class CrawlerConfig:
     """Crawler configuration"""
     intervals: Dict[str, IntervalConfig] = field(default_factory=lambda: {
-        '1m': IntervalConfig(limit=120, update_every_seconds=60),      # 1 minute
-        '3m': IntervalConfig(limit=60, update_every_seconds=180),      # 3 minutes
-        '5m': IntervalConfig(limit=60, update_every_seconds=300),      # 5 minutes
-        '15m': IntervalConfig(limit=32, update_every_seconds=900),     # 15 minutes
-        '30m': IntervalConfig(limit=24, update_every_seconds=1800),    # 30 minutes
-        '1h': IntervalConfig(limit=48, update_every_seconds=3600),     # 1 hour
-        '2h': IntervalConfig(limit=24, update_every_seconds=7200),     # 2 hours
-        '4h': IntervalConfig(limit=18, update_every_seconds=14400),    # 4 hours
-        '6h': IntervalConfig(limit=28, update_every_seconds=21600),    # 6 hours
-        '12h': IntervalConfig(limit=14, update_every_seconds=43200),   # 12 hours
-        '1d': IntervalConfig(limit=7, update_every_seconds=86400),     # 1 day
-        '1w': IntervalConfig(limit=4, update_every_seconds=604800),    # 1 week
+        '1m': IntervalConfig(limit=5, update_every_seconds=60),      # 1 minute
+        '3m': IntervalConfig(limit=5, update_every_seconds=180),      # 3 minutes
+        '5m': IntervalConfig(limit=5, update_every_seconds=300),      # 5 minutes
+        '15m': IntervalConfig(limit=5, update_every_seconds=900),     # 15 minutes
+        '30m': IntervalConfig(limit=5, update_every_seconds=1800),    # 30 minutes
+        '1h': IntervalConfig(limit=5, update_every_seconds=3600),     # 1 hour
+        '2h': IntervalConfig(limit=5, update_every_seconds=7200),     # 2 hours
+        '4h': IntervalConfig(limit=5, update_every_seconds=14400),    # 4 hours
+        '6h': IntervalConfig(limit=5, update_every_seconds=21600),    # 6 hours
+        '12h': IntervalConfig(limit=5, update_every_seconds=43200),   # 12 hours
+        '1d': IntervalConfig(limit=5, update_every_seconds=86400),     # 1 day
+        '1w': IntervalConfig(limit=5, update_every_seconds=604800),    # 1 week
     })
     symbols_file: str = "symbols_top20.txt"
     max_workers: int = 4

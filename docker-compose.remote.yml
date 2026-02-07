@@ -24,7 +24,6 @@ services:
         max-size: "10m"
         max-file: "3"
 
-  # Kafka Consumer -> MongoDB Writer
   consumer:
     image: binance-price-crawler:consumer-latest
     container_name: binance_consumer

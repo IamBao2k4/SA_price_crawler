@@ -83,7 +83,7 @@ def test_mongodb():
 def main():
     """Run all tests"""
     print("\n🔍 Testing Remote Services Connection")
-    print("Server: 3.26.179.20\n")
+    print("Server: 3.104.35.238\n")
 
     kafka_ok = test_kafka()
     mongo_ok = test_mongodb()
@@ -104,7 +104,7 @@ def main():
     else:
         print("\n❌ Some services are not reachable.")
         print("\nPlease check:")
-        print("  1. Server IP is correct (3.26.179.20)")
+        print("  1. Server IP is correct (3.104.35.238)")
         print("  2. Firewall/Security groups allow your IP")
         print("  3. Services are running on the server")
         return 1
